@@ -14,9 +14,10 @@ This repo is intended for:
 ## Structure
 
 scripts/
-├── sanity_check_data.py        # Verify dataset consistency (shape, dtype, pairing)
-├── train_test_monai.py        # Supervised training (Maestro2 with labels)
-├── train_test_monai_semi.py   # Semi-supervised training (adds unlabeled data)
+  - sanity_check_data.py        # Verify dataset consistency (shape, dtype, pairing)
+  - train_test_monai.py         # Supervised training (Maestro2 with labels)
+  - train_test_monai_semi.py    # Semi-supervised training (adds unlabeled data)
+
 
 ## Dataset Assumptions
 
