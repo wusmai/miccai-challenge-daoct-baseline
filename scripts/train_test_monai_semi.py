@@ -12,7 +12,7 @@ from monai.inferers import sliding_window_inference
 # -----------------------------
 # 1. Dataset paths
 # -----------------------------
-dataset_root = Path("dataset")
+dataset_root = Path("dataset_balanced")
 supervised_device = "Topcon_Maestro2"
 unlabeled_devices = ["Heidelberg_Spectralis", "Zeiss_Cirrus"]
 classes = 10  # 10-class segmentation
