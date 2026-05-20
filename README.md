@@ -123,3 +123,20 @@ python scripts/train_test_monai_semi.py
 - Not optimized for performance
 - Designed to match the expected dataset structure of the challenge
 - This repository is for local prototyping only and does not reflect final challenge submission code
+
+
+## Template Submission
+```bash
+# Build
+docker build -t daoct-baseline .
+
+# Run (mounts your local directory into the container)
+docker run --rm -it -v $(pwd):/app daoct-baseline
+
+# Then inside the container:
+python scripts/sanity_check_dataset.py
+python scripts/train_test_monai.py
+python scripts/train_test_monai_semi.py
+The -v $(pwd):/app is the key part — it mounts your local code and data into /app at runtime rather than baking it into the image. Want me to write this into the README?
+
+```
