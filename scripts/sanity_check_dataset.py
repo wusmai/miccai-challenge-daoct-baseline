@@ -7,7 +7,7 @@ from PIL import Image
 # -----------------------------
 # Paths
 # -----------------------------
-dataset_root = Path("dataset")
+dataset_root = Path("dataset_balanced")
 devices = ["Topcon_Maestro2", "Heidelberg_Spectralis", "Zeiss_Cirrus"]
 labels = ["Diseased", "Healthy"]
 

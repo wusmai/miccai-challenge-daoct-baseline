@@ -17,7 +17,7 @@ from tqdm import tqdm
 # -----------------------------
 # 1. Dataset paths
 # -----------------------------
-dataset_root = Path("dataset/Topcon_Maestro2")
+dataset_root = Path("dataset_balanced/Topcon_Maestro2")
 classes = 10  # 10-class segmentation
 
 data = []
