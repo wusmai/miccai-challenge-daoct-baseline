@@ -3,12 +3,19 @@ from glob import glob
 from pathlib import Path
 import numpy as np
 from PIL import Image
+import argparse
+from pathlib import Path
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--data_root", type=str, required=True)
+args = parser.parse_args()
 
 # -----------------------------
 # Paths
 # -----------------------------
-dataset_root = Path("dataset_balanced")
-devices = ["Topcon_Maestro2", "Heidelberg_Spectralis", "Zeiss_Cirrus"]
+dataset_root = Path(args.data_root)
+devices = ["Topcon_Maestro2", "Topcon_Maestro2_unlabeled", "Heidelberg_Spectralis", "Zeiss_Cirrus"]
 labels = ["Diseased", "Healthy"]
 
 # -----------------------------
