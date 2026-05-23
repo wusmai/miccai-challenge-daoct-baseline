@@ -1,5 +1,6 @@
 import os
 from glob import glob
+import argparse
 from pathlib import Path
 import torch
 from monai.data import CacheDataset, DataLoader
@@ -9,12 +10,16 @@ from monai.losses import DiceLoss
 from monai.metrics import DiceMetric
 from monai.inferers import sliding_window_inference
 
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--data_root", type=str, required=True)
+args = parser.parse_args()
 # -----------------------------
 # 1. Dataset paths
 # -----------------------------
-dataset_root = Path("dataset_balanced")
+dataset_root = Path(args.data_root)
 supervised_device = "Topcon_Maestro2"
-unlabeled_devices = ["Heidelberg_Spectralis", "Zeiss_Cirrus"]
+unlabeled_devices = ["Heidelberg_Spectralis", "Zeiss_Cirrus", "Topcon_Maestro2_unlabeled"]
 classes = 10  # 10-class segmentation
 
 # -----------------------------
@@ -43,7 +48,7 @@ print(f"Supervised samples: {len(supervised_data)}, Unlabeled samples: {len(unla
 # 4. Transforms
 # -----------------------------
 image_transform = Compose([
-    LoadImage(image_only=True),
+    LoadImage(image_only=True, reverse_indexing=False),
     EnsureChannelFirst(),
     ScaleIntensity(),
     Resize((256, 256)),
@@ -51,7 +56,7 @@ image_transform = Compose([
 ])
 
 mask_transform = Compose([
-    LoadImage(image_only=True),
+    LoadImage(image_only=True, reverse_indexing=False),
     EnsureChannelFirst(),
     Resize((256, 256), mode="nearest"),
     ToTensor()
@@ -126,6 +131,19 @@ with torch.no_grad():
         metric = dice_metric(y_pred=outputs, y=labels)
         print("Dice per class:", metric.cpu().numpy())
         break
+
+# -----------------------------
+# 9. Save model
+# -----------------------------
+os.makedirs("checkpoints", exist_ok=True)
+
+model_path = "checkpoints/unet_maestro2_semi.pth"
+
+torch.save(model.state_dict(), model_path)
+
+print(f"[INFO] Model saved to {model_path}")
+
+    
 # -----------------------------
 # Test loop to check loading (unlabeled only)
 # -----------------------------

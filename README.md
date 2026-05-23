@@ -25,8 +25,41 @@ scripts/
   xxx-image.png
   xxx-mask.png
 - Labels are integer encoded per pixel
-- Only Maestro2 images have labels
-- Other devices (e.g., Cirrus, Spectralis) are unlabeled
+---
+
+### Device-wise structure
+
+- `Topcon_Maestro2`
+  - Contains labeled data with image-mask pairs
+  - Subdivided into:
+    - `Diseased`
+    - `Healthy`
+
+- `Topcon_Maestro2_unlabeled`
+  - Contains images only (no masks provided)
+  - Used for semi-supervised learning (if enabled)
+
+- `Heidelberg_Spectralis`
+  - Unlabeled dataset (no masks provided)
+
+- `Zeiss_Cirrus`
+  - Unlabeled dataset (no masks provided)
+
+---
+
+### Training assumptions
+
+- Supervised training uses only `Topcon_Maestro2` labeled data
+- Semi-supervised training may additionally use `Topcon_Maestro2_unlabeled`
+- Other devices are intended for domain generalization / adaptation studies
+
+---
+
+### Inference assumptions
+
+- No device/domain label is provided at inference time
+- Models must operate without access to metadata such as device type or disease label
+- Only image input is allowed for prediction
 
 
 ## Usage
@@ -43,20 +76,24 @@ poetry install
 
 ### 0. Sanity Check
 ```bash
-md5sum -c md5.txt # checksum
-tar -xvf data_synthetic_v1.tar # unzip
+md5sum -c md5_v1.0.txt # checksum
+tar -xvf data_synthetic_v1.0.tar # unzip
 ```
 
 ### 1. Sanity check dataset
 ```bash
-python scripts/sanity_check_dataset.py
+python scripts/sanity_check_dataset.py --data_root release_dataset/
 
 ## Expected output:
 # Device: Topcon_Maestro2
-#   Diseased: 223 images, 223 masks
+#   Diseased: 57 images, 57 masks
 #     All images have masks
-#   Healthy: 669 images, 669 masks
+#   Healthy: 173 images, 173 masks
 #     All images have masks
+
+# Device: Topcon_Maestro2_unlabeled
+#   Diseased: 166 images, 0 masks
+#   Healthy: 496 images, 0 masks
 
 # Device: Heidelberg_Spectralis
 #   Diseased: 56 images, 0 masks
@@ -67,55 +104,81 @@ python scripts/sanity_check_dataset.py
 #   Healthy: 159 images, 0 masks
 
 # Sanity check finished.
+
+
+
 ```
 
 ### 2. Supervised training
 ```bash
-python scripts/train_test_monai.py
+python scripts/train_test_monai.py --data_root release_dataset/Topcon_Maestro2
 
-# Loading dataset: 100%|██████████████████████████████████████████████████████████████████████████| 892/892 [00:00<00:00, 32475.88it/s]
+## Expected output:  
+# Loading dataset: 100%|███████████████████████████████████████████████████████| 230/230 [00:00<00:00, 1437689.90it/s]
 # Epoch 1/5
-# Loss: 0.2865
+# Loss: 0.5358
 # Epoch 2/5
-# Loss: 0.1420
+# Loss: 0.2059
 # Epoch 3/5
-# Loss: 0.1243
+# Loss: 0.1657
 # Epoch 4/5
-# Loss: 0.1144
+# Loss: 0.1511
 # Epoch 5/5
-# Loss: 0.1041
+# Loss: 0.1432
+# Dice per class: [[0.63997924 0.05056815 0.05111888 0.05738677 0.03837289 0.04033789
+#   0.04673343 0.04827494 0.04145062 0.504956  ]
+#  [0.19913991 0.05689719 0.05568659 0.06069215 0.04670432 0.04708266
+#   0.0512058  0.03023654 0.03260184 0.819352  ]]
+# [INFO] Model saved to checkpoints/unet_maestro2.pth
 
-# Dice per class: [[0.576202   0.05536928 0.05652264 0.06089298 0.03746238 0.03734483
-#   0.04235744 0.04332184 0.0342247  0.5785798 ]
-#  [0.31262392 0.05934261 0.06404348 0.07479216 0.04080657 0.04142136
-#   0.04786798 0.04416856 0.04089442 0.75176656]]
 ```
 
 ### 3. Semi-supervised training
 ```bash
-python scripts/train_test_monai_semi.py
+python scripts/train_test_monai_semi.py --data_root release_dataset/
 
-# Supervised samples: 892, Unlabeled samples: 437
-# Loading dataset: 100%|██████████████████████████████████████████████████████████████████████████| 892/892 [00:00<00:00, 37451.77it/s]
-# Loading dataset: 100%|██████████████████████████████████████████████████████████████████████████| 437/437 [00:00<00:00, 30624.57it/s]
+## Expected output: 
+# Loading dataset: 100%|███████████████████████████████████████████████████████| 230/230 [00:00<00:00, 1504976.47it/s]
+# Loading dataset: 100%|██████████████████████████████████████████████████████| 1099/1099 [00:00<00:00, 173297.50it/s]
 # Epoch 1/5
-# Supervised loss: 0.3621
+# Supervised loss: 0.5232
 # Epoch 2/5
-# Supervised loss: 0.2410
+# Supervised loss: 0.2127
 # Epoch 3/5
-# Supervised loss: 0.2270
+# Supervised loss: 0.1838
 # Epoch 4/5
-# Supervised loss: 0.2150
+# Supervised loss: 0.1580
 # Epoch 5/5
-# Supervised loss: 0.2110
-
-# Dice per class: [[0.24741937 0.05195886 0.05123478 0.05712761 0.03254278 0.03295615
-#   0.03737422 0.03345786 0.0313312  0.8174026 ]
-#  [0.672823   0.0643008  0.06584325 0.07184678 0.04760628 0.04635495
-#   0.05305843 0.04705356 0.03939988 0.4239145 ]]
+# Supervised loss: 0.1437
+# Dice per class: [[0.40216503 0.07770038 0.07832041 0.08531027 0.0499881  0.05039417
+#   0.05583079 0.05100296 0.04673343 0.6597681 ]
+#  [0.47707573 0.07916526 0.07648733 0.08208835 0.04209426 0.04294204
+#   0.04961088 0.03702151 0.03957582 0.6254601 ]]
+# [INFO] Model saved to checkpoints/unet_maestro2_semi.pth
 # Batch shape: torch.Size([2, 1, 256, 256])
 # Output shape: torch.Size([2, 10, 256, 256])
 ```
+
+### 4. Inference
+
+Inference is performed on a directory of raw input images. No labels or metadata are required.
+
+The input directory may contain arbitrary or unseen data. The model must operate using image-only input without any domain or class information.
+Predictions are saved as per-image segmentation masks in output_dir using the same filename convention as input images.
+
+```bash
+python scripts/infer_test_monai.py \
+  --input_dir external_test/ \
+  --output_dir pred/ \
+  --model_path checkpoints/unet_maestro2.pth
+
+## Expected output: 
+# [INFO] Loading checkpoint: checkpoints/unet_maestro2.pth
+# [INFO] Found N images
+# [INFO] Inference complete.
+```
+
+
 
 ## Notes
 
@@ -134,9 +197,9 @@ docker build -t daoct-baseline .
 docker run --rm -it -v $(pwd):/app daoct-baseline
 
 # Then inside the container:
-python scripts/sanity_check_dataset.py
-python scripts/train_test_monai.py
-python scripts/train_test_monai_semi.py
-The -v $(pwd):/app is the key part — it mounts your local code and data into /app at runtime rather than baking it into the image. Want me to write this into the README?
-
+python scripts/train.py
+python scripts/inference.py
 ```
+The -v $(pwd):/app flag mounts the local repository into the Docker container at runtime, ensuring reproducibility without embedding data or code into the image.
+
+

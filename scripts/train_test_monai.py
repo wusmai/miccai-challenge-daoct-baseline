@@ -1,5 +1,7 @@
 import os
 from glob import glob
+from tqdm import tqdm
+import argparse
 from pathlib import Path
 import numpy as np
 import torch
@@ -12,12 +14,17 @@ from monai.networks.nets import UNet
 from monai.losses import DiceLoss
 from monai.metrics import DiceMetric
 from monai.inferers import sliding_window_inference
-from tqdm import tqdm
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--data_root", type=str, required=True)
+args = parser.parse_args()
+
 
 # -----------------------------
 # 1. Dataset paths
 # -----------------------------
-dataset_root = Path("dataset_balanced/Topcon_Maestro2")
+dataset_root = Path(args.data_root)
 classes = 10  # 10-class segmentation
 
 data = []
@@ -31,7 +38,7 @@ for label in ["Diseased", "Healthy"]:
 # 2. Transforms
 # -----------------------------
 train_transforms = Compose([
-    LoadImage(image_only=True),
+    LoadImage(image_only=True, reverse_indexing=False),
     EnsureChannelFirst(),
     ScaleIntensity(),
     Resize((256, 256)),
@@ -39,7 +46,7 @@ train_transforms = Compose([
 ])
 
 mask_transforms = Compose([
-    LoadImage(image_only=True),
+    LoadImage(image_only=True, reverse_indexing=False),
     EnsureChannelFirst(),
     Resize((256, 256), mode="nearest"),
     ToTensor()
@@ -106,3 +113,14 @@ with torch.no_grad():
         metric = dice_metric(y_pred=outputs, y=labels)
         print("Dice per class:", metric.cpu().numpy())
         break  # just check first batch
+
+# -----------------------------
+# 7. Save model
+# -----------------------------
+os.makedirs("checkpoints", exist_ok=True)
+
+model_path = "checkpoints/unet_maestro2.pth"
+
+torch.save(model.state_dict(), model_path)
+
+print(f"[INFO] Model saved to {model_path}")
