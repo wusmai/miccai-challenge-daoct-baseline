@@ -3,6 +3,7 @@ from glob import glob
 import argparse
 from pathlib import Path
 import torch
+import torch.nn.functional as F
 from monai.data import CacheDataset, DataLoader
 from monai.transforms import Compose, LoadImage, EnsureChannelFirst, ScaleIntensity, ToTensor, Resize
 from monai.networks.nets import UNet
@@ -98,7 +99,7 @@ model = UNet(
 
 loss_function = DiceLoss(to_onehot_y=True, softmax=True)
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-dice_metric = DiceMetric(include_background=True, reduction="mean")
+dice_metric = DiceMetric(include_background=True, reduction="none")
 
 # -----------------------------
 # 7. Training loop (supervised only)
@@ -123,14 +124,27 @@ for epoch in range(epochs):
 # 8. Quick evaluation
 # -----------------------------
 model.eval()
+dice_metric.reset()
 with torch.no_grad():
     for batch in sup_loader:
         inputs, labels = batch["image"].to(device), batch["label"].to(device)
         #labels = labels // 10
+        labels = labels.long()
         outputs = sliding_window_inference(inputs, (256,256), 1, model)
-        metric = dice_metric(y_pred=outputs, y=labels)
+        pred = torch.argmax(outputs, dim=1)
+        pred_onehot = F.one_hot(
+            pred,
+            num_classes=classes
+        ).permute(0,3,1,2).float()
+        label_onehot = F.one_hot(
+            labels.squeeze(1),
+            num_classes=classes
+        ).permute(0,3,1,2).float()
+        metric = dice_metric(y_pred=pred_onehot, y=label_onehot)
+        metric = dice_metric.aggregate()
         print("Dice per class:", metric.cpu().numpy())
         break
+
 
 # -----------------------------
 # 9. Save model
