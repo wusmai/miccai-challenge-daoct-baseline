@@ -191,15 +191,13 @@ python scripts/infer_test_monai.py \
 ## Template Submission
 ```bash
 # Build
-docker build -t daoct-baseline .
+docker build -t bearceb/daoct-baseline:latest .
 
 # Run (mounts your local directory into the container)
-docker run --rm -it -v $(pwd):/app daoct-baseline
+docker run --rm -it -v $(pwd):/app bearceb/daoct-baseline:latest
 
 # Then inside the container:
-python scripts/train.py
-python scripts/inference.py
+python scripts/sanity_check_dataset.py
+python scripts/train_test_monai.py
+python scripts/train_test_monai_semi.py
 ```
-The -v $(pwd):/app flag mounts the local repository into the Docker container at runtime, ensuring reproducibility without embedding data or code into the image.
-
-
