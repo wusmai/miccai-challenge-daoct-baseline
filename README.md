@@ -194,10 +194,10 @@ python scripts/infer_test_monai.py \
 ## Template Submission
 ```bash
 # Build
-docker build -t daoct-baseline .
+docker build -t bearceb/daoct-baseline:latest .
 
 # Run (mounts your local directory into the container)
-docker run --rm -it -v $(pwd):/app daoct-baseline
+docker run --rm -it -v $(pwd):/app bearceb/daoct-baseline:latest
 
 # Then inside the container:
 python scripts/train.py
