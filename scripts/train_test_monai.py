@@ -85,7 +85,7 @@ dice_metric = DiceMetric(include_background=True, reduction="none")
 # -----------------------------
 # 5. Training loop (few iterations)
 # -----------------------------
-epochs = 5  # just a quick test
+epochs = 5 # just a quick test
 for epoch in range(epochs):
     print(f"Epoch {epoch+1}/{epochs}")
     model.train()

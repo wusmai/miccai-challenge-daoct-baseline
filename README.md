@@ -66,12 +66,10 @@ scripts/
 
 ### Python venv setup
 ```bash
+# Ex with pyenv
 pyenv virtualenv 3.10.0 miccai_satelite_events
 pyenv activate miccai_satelite_events
-# pyenv only
-pip install .
-# poetry
-poetry install 
+pip install -r requirements.txt
 ```
 
 ### 0. Sanity Check
@@ -104,9 +102,6 @@ python scripts/sanity_check_dataset.py --data_root release_dataset/
 #   Healthy: 159 images, 0 masks
 
 # Sanity check finished.
-
-
-
 ```
 
 ### 2. Supervised training
@@ -160,7 +155,6 @@ python scripts/train_test_monai_semi.py --data_root release_dataset/
 ```
 
 ### 4. Inference
-
 Inference is performed on a directory of raw input images. No labels or metadata are required.
 
 The input directory may contain arbitrary or unseen data. The model must operate using image-only input without any domain or class information.
@@ -169,18 +163,33 @@ Participants may output segmentation maps at any resolution.
 During evaluation, all predicted masks will be resized to the corresponding ground-truth resolution using **nearest-neighbor interpolation** prior to metric computation.
 This ensures consistent comparison across submissions while allowing flexibility in model design and inference pipeline.
 
+
 ```bash
+# We use release_dataset/Topcon_Maestro2/Healthy/ as input here
+# as an example, but in reality there will be unseen data. 
+# This is just for demonstration.
+
+# This creates a `pred` directory of predictions that will be used
+# in the metrics file described in the next section
+
 python scripts/infer_test_monai.py \
-  --input_dir external_test/ \
+  --input_dir release_dataset/Topcon_Maestro2/Healthy/ \
   --output_dir pred/ \
   --model_path checkpoints/unet_maestro2.pth
 
 ## Expected output: 
 # [INFO] Loading checkpoint: checkpoints/unet_maestro2.pth
-# [INFO] Found N images
+# [INFO] Found 173 images
 # [INFO] Inference complete.
 ```
 
+
+### 5. Metrics
+
+Not needed to be run by participants but this is an example of what will be run to evaluate your code.
+```bash
+# python scripts/metrics.py
+```
 
 
 ## Notes
@@ -189,23 +198,3 @@ python scripts/infer_test_monai.py \
 - Not optimized for performance
 - Designed to match the expected dataset structure of the challenge
 - This repository is for local prototyping only and does not reflect final challenge submission code
-
-
-## Template Submission
-```bash
-# Build
-docker build -t bearceb/daoct-baseline:latest .
-
-# Run (mounts your local directory into the container)
-docker run --rm -it -v $(pwd):/app bearceb/daoct-baseline:latest
-
-# Then inside the container:
-python scripts/train.py
-python scripts/inference.py
-```
-The -v $(pwd):/app flag mounts the local repository into the Docker container at runtime, ensuring reproducibility without embedding data or code into the image.
-
-Participants are permitted to use publicly available pretrained models and foundation model checkpoints.
-To ensure secure, reproducible, and stable evaluation, submitted code will execute in an isolated offline environment without internet access.
-All required pretrained checkpoints and dependencies must be included locally within the submission package.
-External downloads during runtime are prohibited.
