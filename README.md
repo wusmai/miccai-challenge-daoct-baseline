@@ -63,13 +63,31 @@ scripts/
 
 
 ## Usage
+Users will need to use Docker eventually. Prototype with python virtualenv or start using Docker now.
 
 ### Python venv setup
 ```bash
-# Ex with pyenv
+# Ex with pyenv but regular virtualenvs work too
 pyenv virtualenv 3.10.0 miccai_satelite_events
 pyenv activate miccai_satelite_events
 pip install -r requirements.txt
+```
+
+## Docker setup
+Here is how to use docker for these sample scripts:
+```bash
+docker build \
+  -f ./Dockerfile \
+  -t dockerhub_username/daoct-baseline:latest \
+  .
+
+# Run docker container in current directory
+docker run -it \
+  --rm \
+  -v ./:/app_ingestion \
+  -w /app_ingestion \
+  dockerhub_username/daoct-baseline:latest \
+  bash
 ```
 
 ### 0. Sanity Check
@@ -79,6 +97,7 @@ tar -xvf data_synthetic_v1.0.tar # unzip
 ```
 
 ### 1. Sanity check dataset
+Run from git cloned directory with python venv or docker command above.
 ```bash
 python scripts/sanity_check_dataset.py --data_root release_dataset/
 
