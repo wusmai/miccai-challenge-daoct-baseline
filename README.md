@@ -103,6 +103,7 @@ The file `data_synthetic_v1.0.tar` is stored using Git Large File Storage (LFS).
 ```bash
 git lfs install
 git lfs pull
+```
 
 ### 0. Sanity Check
 ```bash
