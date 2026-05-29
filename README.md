@@ -76,17 +76,23 @@ pip install -r requirements.txt
 ## Docker setup
 Here is how to use docker for these sample scripts:
 ```bash
+DOCKER_IMAGE=dockerhub_username/daoct-baseline:latest
+OUR_DOCKER_IMAGE=bearceb/daoct-baseline:latest
 docker build \
   -f ./Dockerfile \
-  -t dockerhub_username/daoct-baseline:latest \
+  -t $DOCKER_IMAGE \
   .
 
+docker push $DOCKER_IMAGE
+
 # Run docker container in current directory
+# Note: You can use OUR_DOCKER_IMAGE `bearceb/daoct-baseline:latest`
+# Link: https://hub.docker.com/repositories/bearceb
 docker run -it \
   --rm \
   -v ./:/app_ingestion \
   -w /app_ingestion \
-  dockerhub_username/daoct-baseline:latest \
+  $DOCKER_IMAGE \
   bash
 ```
 
