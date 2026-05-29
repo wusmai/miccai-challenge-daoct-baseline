@@ -96,6 +96,14 @@ docker run -it \
   bash
 ```
 
+## Dataset Download
+
+The file `data_synthetic_v1.0.tar` is stored using Git Large File Storage (LFS). Please ensure Git LFS is installed before cloning the repository:
+
+```bash
+git lfs install
+git lfs pull
+
 ### 0. Sanity Check
 ```bash
 md5sum -c md5_v1.0.txt # checksum
